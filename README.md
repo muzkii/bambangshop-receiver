@@ -59,15 +59,15 @@ You can install Postman via this website: https://www.postman.com/downloads/
     -   Open another new terminal, edit `ROCKET_PORT` in `.env` to `8003`, then execute `cargo run`.
 
 ## Mandatory Checklists (Subscriber)
--   [ ] Clone https://gitlab.com/ichlaffterlalu/bambangshop-receiver to a new repository.
+-   [x] Clone https://gitlab.com/ichlaffterlalu/bambangshop-receiver to a new repository.
 -   **STAGE 1: Implement models and repositories**
-    -   [ ] Commit: `Create Notification model struct.`
-    -   [ ] Commit: `Create SubscriberRequest model struct.`
-    -   [ ] Commit: `Create Notification database and Notification repository struct skeleton.`
-    -   [ ] Commit: `Implement add function in Notification repository.`
-    -   [ ] Commit: `Implement list_all_as_string function in Notification repository.`
-    -   [ ] Write answers of your learning module's "Reflection Subscriber-1" questions in this README.
--   **STAGE 3: Implement services and controllers**
+    -   [x] Commit: `Create Notification model struct.`
+    -   [x] Commit: `Create SubscriberRequest model struct.`
+    -   [x] Commit: `Create Notification database and Notification repository struct skeleton.`
+    -   [x] Commit: `Implement add function in Notification repository.`
+    -   [x] Commit: `Implement list_all_as_string function in Notification repository.`
+    -   [x] Write answers of your learning module's "Reflection Subscriber-1" questions in this README.
+-   **STAGE 2: Implement services and controllers**
     -   [ ] Commit: `Create Notification service struct skeleton.`
     -   [ ] Commit: `Implement subscribe function in Notification service.`
     -   [ ] Commit: `Implement subscribe function in Notification controller.`
@@ -85,5 +85,43 @@ This is the place for you to write reflections:
 ### Mandatory (Subscriber) Reflections
 
 #### Reflection Subscriber-1
+
+1. **Why is `RwLock<>` necessary instead of `Mutex<>`?**
+
+    In our receiver app, we use `RwLock<Vec<Notification>>` to synchronize access to the notification list. This is necessary because multiple threads can read notifications at the same time, but only one thread should be allowed to write at a time. There are multiple reason why using `RwLock<>` is better than the latter. Some of them are:
+
+    -   Multiple readers are allowed (multiple threads can read notifications concurrently).
+    -   Efficient for read-heavy operations, as reading is not blocked unless there is a writer.
+    -   Prevents race conditions, ensuring data consistency.
+
+    With that being said, there are a couple of reasons on why not to choose `Mutex<>`, some examples are:
+
+    -   `Mutex<>` only allows one thread to access the data at a time, even for reading.
+    -   Since notifications are mostly read (e.g., when listing all notifications), using `Mutex<>` would block all other reads whenever a thread is writing.
+    -   This would reduce performance, especially if there are many subscribers requesting notifications at the same time.
+
+    We use `RwLock<>` because it provides better performance for a read-heavy use case. If we used `Mutex<>`, it would block readers unnecessarily, leading to slower performance.
+
+2. **Why does Rust not allow mutation of static variables like Java?**
+
+    In Java, we can mutate static variables using static functions, but Rust does not allow direct mutation of `static` variables because of its safety guarantees. There's a couple of reason why Rust restricts mutable `static` variable, some of them are but not limited to:
+
+    -   Rust enforces thread safety at compile time.
+    -   If `static mut` was allowed, it could cause data races in multi-threaded applications.
+    -   Java uses a Garbage Collector (GC) to manage memory, whereas Rust strictly enforces ownership and borrowing rules to ensure safe memory access.
+
+    But if Rust does not allow mutation of static variables, how come it solve the problems that required mutation? Now instrad of allowing direct mutation of `static` variables, Rust provides safe alternatives such as:
+
+    a. Using `lazy_static!` (like in our case)
+
+    -   We wrap `Vec<Notification>` inside an `RwLock<>` to ensure safe concurrent access.
+    -   This prevents data races while still allowing global access.
+
+    b. Using `DashMap` (for concurrent data structures)
+
+    -   Unlike `Vec`, `DashMap` is designed for concurrent reads and writes, allowing safe updates to shared data.
+
+    To summarize, Rust prioritizes safety over convenience. Unlike Java, where static variables can be mutated freely, Rust requires explicit synchronization (`RwLock<>`, `Mutex<>`, or `DashMap`) to prevent data races. Using `lazy_static!` allows us to create a safe, globally accessible, mutable data structure.
+
 
 #### Reflection Subscriber-2
