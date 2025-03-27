@@ -68,16 +68,16 @@ You can install Postman via this website: https://www.postman.com/downloads/
     -   [x] Commit: `Implement list_all_as_string function in Notification repository.`
     -   [x] Write answers of your learning module's "Reflection Subscriber-1" questions in this README.
 -   **STAGE 2: Implement services and controllers**
-    -   [ ] Commit: `Create Notification service struct skeleton.`
-    -   [ ] Commit: `Implement subscribe function in Notification service.`
-    -   [ ] Commit: `Implement subscribe function in Notification controller.`
-    -   [ ] Commit: `Implement unsubscribe function in Notification service.`
-    -   [ ] Commit: `Implement unsubscribe function in Notification controller.`
-    -   [ ] Commit: `Implement receive_notification function in Notification service.`
-    -   [ ] Commit: `Implement receive function in Notification controller.`
-    -   [ ] Commit: `Implement list_messages function in Notification service.`
-    -   [ ] Commit: `Implement list function in Notification controller.`
-    -   [ ] Write answers of your learning module's "Reflection Subscriber-2" questions in this README.
+    -   [x] Commit: `Create Notification service struct skeleton.`
+    -   [x] Commit: `Implement subscribe function in Notification service.`
+    -   [x] Commit: `Implement subscribe function in Notification controller.`
+    -   [x] Commit: `Implement unsubscribe function in Notification service.`
+    -   [x] Commit: `Implement unsubscribe function in Notification controller.`
+    -   [x] Commit: `Implement receive_notification function in Notification service.`
+    -   [x] Commit: `Implement receive function in Notification controller.`
+    -   [x] Commit: `Implement list_messages function in Notification service.`
+    -   [x] Commit: `Implement list function in Notification controller.`
+    -   [x] Write answers of your learning module's "Reflection Subscriber-2" questions in this README.
 
 ## Your Reflections
 This is the place for you to write reflections:
@@ -125,3 +125,65 @@ This is the place for you to write reflections:
 
 
 #### Reflection Subscriber-2
+
+1. **Have you explored things outside of the steps in the tutorial (e.g., src/lib.rs)?**
+
+    **Yes**, I have explroed additional parts of the code, such as `src/lib.rs` and `src/main.rs`. Here are some thing that I have learned:
+
+    a. From `lib.rs`
+
+    - Global Configuration Handling with `lazy_static!`
+
+        -   `APP_CONFIG`: Stores configuration values such as `instance_root_url`, `publisher_root_url`, and `instance_name`.
+        -   `REQWEST_CLIENT`: A pre-initialized HTTP client for making network requests efficiently.
+
+    - Configuration from Environment Variables
+
+        -   Using `dotenvy::dotenv()` and `Figment`, the app can load configurations dynamically, making it easier to deploy across different environments. Changes from `.env` such as `APP_INSTANCE_NAME=Andriyo Averill` and changing the `ROCKET_PORT` to be 8001, 8002, 8003 respectively.
+
+    - Error Handling (`compose_error_response`)
+
+        -   The system follows a structured error response format using `Custom<Json<ErrorResponse>>`, ensuring consistency in API error messages.
+
+    b. From `main.rs`
+
+    - Application Bootstrapping
+
+        -   The `#[launch]` function initializes the Rocket web framework and loads environment variables using `dotenv().ok()`.
+        -   Calls `rocket::build()` to create a new instance of the Rocket web server.
+
+    - Dependency Injection (`manage()`)
+
+        -   The `reqwest::Client` is pre-initialized and managed within Rocket, ensuring efficient HTTP requests across the application.
+
+    - Route Registration (`attach(route_stage())`)
+
+        -   `route_stage()` from `controller::mod.rs` mounts all API routes in a modular way.
+
+    Now, if I hadn’t explored these parts, I might not have fully understood how the application boots up, manages dependencies, and registers routes dynamically.
+
+2. **How does the Observer pattern help with adding subscribers?**
+
+    The Observer pattern is useful because it decouples publishers from subscribers, making it easy to add new instances dynamically.
+
+    **Benefits in the Notification System**
+
+    - Easily Add More Subscribers
+
+        A new `Receiver` instance simply calls `subscribe(product_type)`, and the publisher registers it without modifying existing code. The NotificationService abstracts subscription logic, so adding new subscribers doesn’t require changes in the publisher.
+
+    - Efficient Notification Handling
+
+        Each `Receiver` instance listens for updates independently. The publisher doesn’t need to know how many subscribers exist since it just notifies all registered ones.
+
+    **Spawning multiple `Main` Instances**
+
+    -   Spawning multiple Publisher (Main) 
+
+        It is more complex since if multiple publishers exist, they must coordinate to ensure notifications are sent correctly. But there are some possible solutions if we're still trying to do so, such as Centralized Database. In this case, Publishers share a common database of subscribers.
+
+    Thus, while adding subscribers is easy, adding publishers requires additional synchronization mechanisms.
+
+3. **Have you tested with Postman or written custom tests?**
+
+    **Yes**, I have used Postman for testing and explored additional features. Since we have to have three different instances of Receiver app and one instance of Main app running simulatenously, if we have each Postman test and changing the port from 8001, to 8002, or even to 8003, it would take so much time to do so. Instead, we can create custom API Tests in Postman and classifies them as a collection. On the group project, for now, since we haven't implemented the path or even succesfully built it, I can't really say much. But, we (at least my group and I) are going to use Postman as our API service to test out some path.
